@@ -10,11 +10,12 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
-type Header struct {
+type PerfdataHeader struct {
 	// 0xcafec0c0
 	Magic uint32
 	// big_endian == 0, little_endian == 1
@@ -22,6 +23,14 @@ type Header struct {
 	Major     byte
 	Minor     byte
 	// Reserved  byte
+}
+
+func (header *PerfdataHeader) GetEndian() binary.ByteOrder {
+	if header.ByteOrder == 0 {
+		return binary.BigEndian
+	} else {
+		return binary.LittleEndian
+	}
 }
 
 // see sun/management/counter/perf/Prologue.java
@@ -47,88 +56,71 @@ type DataEntryHeader2 struct {
 
 type DataEntry struct {
 	key   string
-	value string
+	Value interface{}
 }
 
-const (
-	TYPE_LONG            = 'J'
-	TYPE_BYTE            = 'B'
-	UNITS_STRING         = 5
-	VARIABILITY_CONSTANT = 1
-	VARIABILITY_VARIABLE = 3
-)
-
-func main() {
-	if os.Args[1] == "ps" {
-		Jps()
-	} else if os.Args[1] == "stat" {
-		dir, err := GetHsperfdataDirectoryForCurrentUser()
-		if err != nil {
-			log.Fatal("user", err)
-		}
-		pid := os.Args[2]
-		ch, err := ReadHsperfdata(filepath.Join(dir, pid))
-		if err != nil {
-			log.Fatal("open fail", err)
-		}
-		for entry := range ch {
-			fmt.Printf("%s=%v\n", entry.key, entry.value)
-		}
-	}
+type HsperfdataRepository struct {
+	dir string
 }
 
-func Jps() {
-	dir, err := GetHsperfdataDirectoryForCurrentUser()
+func New() (*HsperfdataRepository, error) {
+	user, err := user.Current()
 	if err != nil {
-		log.Fatal("user", err)
+		return nil, err
 	}
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		log.Fatal("readdir", err)
-	}
-	for _, f := range files {
-		proc_name, err := GetProcName(f.Name())
-		if err != nil {
-			log.Fatal("procname", err)
-		}
-		fmt.Printf("%s %s\n", f.Name(), proc_name)
-	}
+	return NewUser(user.Username)
 }
 
-func GetProcName(pid string) (string, error) {
-	dir, err := GetHsperfdataDirectoryForCurrentUser()
+func NewUser(userName string) (*HsperfdataRepository, error) {
+	dir := filepath.Join(os.TempDir(), "hsperfdata_"+userName)
+	return &HsperfdataRepository{dir}, nil
+}
+
+func (repository *HsperfdataRepository) GetFile(pid string) HsperfdataFile {
+	return HsperfdataFile{filepath.Join(repository.dir, pid)}
+}
+
+func (repository *HsperfdataRepository) GetFiles() ([]HsperfdataFile, error) {
+	files, err := ioutil.ReadDir(repository.dir)
 	if err != nil {
-		log.Fatal("user", err)
+		return nil, err
 	}
-	ch, err := ReadHsperfdata(filepath.Join(dir, string(pid)))
+	retval := make([]HsperfdataFile, len(files))
+	for i, f := range files {
+		retval[i] = HsperfdataFile{filepath.Join(repository.dir, f.Name())}
+	}
+
+	return retval, nil
+}
+
+type HsperfdataFile struct {
+	filename string
+}
+
+func (file *HsperfdataFile) GetPid() string {
+	return path.Base(file.filename)
+}
+
+func (file *HsperfdataFile) GetProcName() (string, error) {
+	ch, err := file.ReadHsperfdata()
 	if err != nil {
-		log.Fatal("open fail", err)
+		return "", err
 	}
 	for entry := range ch {
 		if entry.key == "sun.rt.javaCommand" {
-			splitted := strings.SplitN(entry.value, " ", 2)
-			return splitted[0], nil
+			if str, ok := entry.Value.(string); ok {
+				splitted := strings.SplitN(str, " ", 2)
+				return splitted[0], nil
+			}
 		}
 	}
 	return "", errors.New("there's no sun.rt.javaCommand")
 }
 
-func GetHsperfdataDirectoryForCurrentUser() (string, error) {
-	user, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	return GetHsperfdataDirectory(user.Username), nil
-}
-
-func GetHsperfdataDirectory(user string) string {
-	return filepath.Join(os.TempDir(), "hsperfdata_"+user)
-}
-
-func ReadHsperfdata(filename string) (chan DataEntry, error) {
+func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
 	ch := make(chan DataEntry)
 
-	file, err := os.Open(filename)
+	file, err := os.Open(datafile.filename)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +139,7 @@ func ReadHsperfdata(filename string) (chan DataEntry, error) {
 		return nil, err
 	}
 
-	header := Header{}
+	header := PerfdataHeader{}
 	{
 		buffer := bytes.NewBuffer(data)
 		err = binary.Read(buffer, binary.BigEndian, &header)
@@ -222,10 +214,51 @@ func ReadHsperfdata(filename string) (chan DataEntry, error) {
 	return ch, err
 }
 
-func (header *Header) GetEndian() binary.ByteOrder {
-	if header.ByteOrder == 0 {
-		return binary.BigEndian
-	} else {
-		return binary.LittleEndian
+const (
+	TYPE_LONG            = 'J'
+	TYPE_BYTE            = 'B'
+	UNITS_STRING         = 5
+	VARIABILITY_CONSTANT = 1
+	VARIABILITY_VARIABLE = 3
+)
+
+func main() {
+	if os.Args[1] == "ps" {
+		Jps()
+	} else if os.Args[1] == "stat" {
+		repository, err := New()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		pid := os.Args[2]
+		file := repository.GetFile(pid)
+		ch, err := file.ReadHsperfdata()
+		if err != nil {
+			log.Fatal("open fail", err)
+		}
+
+		for entry := range ch {
+			fmt.Printf("%s=%v\n", entry.key, entry.Value)
+		}
+	}
+}
+
+func Jps() {
+	repo, err := New()
+	if err != nil {
+		log.Fatal("user", err)
+	}
+	files, err := repo.GetFiles()
+	if err != nil {
+		log.Fatal("repo", err)
+	}
+
+	for _, f := range files {
+		proc_name, err := f.GetProcName()
+		if err != nil {
+			log.Fatal("procname", err)
+		}
+		fmt.Printf("%s %s\n", f.GetPid(), proc_name)
 	}
 }
