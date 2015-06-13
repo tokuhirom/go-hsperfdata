@@ -1,4 +1,4 @@
-package main
+package hsperfdata
 
 import (
 	"bufio"
@@ -55,7 +55,7 @@ type DataEntryHeader2 struct {
 }
 
 type DataEntry struct {
-	key   string
+	Key   string
 	Value interface{}
 }
 
@@ -107,7 +107,7 @@ func (file *HsperfdataFile) GetProcName() (string, error) {
 		return "", err
 	}
 	for entry := range ch {
-		if entry.key == "sun.rt.javaCommand" {
+		if entry.Key == "sun.rt.javaCommand" {
 			if str, ok := entry.Value.(string); ok {
 				splitted := strings.SplitN(str, " ", 2)
 				return splitted[0], nil
@@ -199,7 +199,7 @@ func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
 				if entry.DataType != TYPE_BYTE || entry.DataUnits != UNITS_STRING || (entry.DataVar != VARIABILITY_CONSTANT && entry.DataVar != VARIABILITY_VARIABLE) {
 					log.Fatal(fmt.Sprintf("Unexpected vector monitor: DataType:%c,DataUnits:%v,DataVar:%v", entry.DataType, entry.DataUnits, entry.DataVar), nil)
 				}
-				value := strings.TrimSuffix(string(data[data_start:data_start+entry.VectorLength]), "\r\n\x00")
+				value := strings.TrimSuffix(strings.TrimSuffix(strings.TrimSuffix(string(data[data_start:data_start+entry.VectorLength]), "\r"), "\n"), "\x00")
 
 				ch <- DataEntry{name, value}
 			}
@@ -221,44 +221,3 @@ const (
 	VARIABILITY_CONSTANT = 1
 	VARIABILITY_VARIABLE = 3
 )
-
-func main() {
-	if os.Args[1] == "ps" {
-		Jps()
-	} else if os.Args[1] == "stat" {
-		repository, err := New()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		pid := os.Args[2]
-		file := repository.GetFile(pid)
-		ch, err := file.ReadHsperfdata()
-		if err != nil {
-			log.Fatal("open fail", err)
-		}
-
-		for entry := range ch {
-			fmt.Printf("%s=%v\n", entry.key, entry.Value)
-		}
-	}
-}
-
-func Jps() {
-	repo, err := New()
-	if err != nil {
-		log.Fatal("user", err)
-	}
-	files, err := repo.GetFiles()
-	if err != nil {
-		log.Fatal("repo", err)
-	}
-
-	for _, f := range files {
-		proc_name, err := f.GetProcName()
-		if err != nil {
-			log.Fatal("procname", err)
-		}
-		fmt.Printf("%s %s\n", f.GetPid(), proc_name)
-	}
-}
