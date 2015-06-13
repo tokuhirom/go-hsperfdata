@@ -22,6 +22,20 @@ jstat/jps is slow. And these commands aren't programmable.
     sun.zip.zipFiles=135
     sun.zip.zipFile.openTime=23649506
 
+## Benchmarking
+
+```
+$ time ./hsperfdata-go ps
+13223
+21916 org.jetbrains.jps.cmdline.Launcher
+./hsperfdata-go ps  0.00s user 0.00s system 83% cpu 0.010 total
+$ time jps
+13223
+21916 Launcher
+93597 Jps
+jps  0.41s user 0.09s system 104% cpu 0.479 total
+```
+
 ## LICENSE
 
     The MIT License (MIT)
