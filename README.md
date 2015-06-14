@@ -6,13 +6,18 @@ HotSpot JVM's performance data analyzer written in Golang.
 
 jstat/jps is slow. And these commands aren't programmable.
 
+## INSTALL
+
+    go get github.com/tokuhirom/go-hsperfdata/hsps/
+    go get github.com/tokuhirom/go-hsperfdata/hsstat/
+
 ## SYNOPSIS
 
-    $ hsperfdata-go ps
+    $ hsps
     13223
     21916 org.jetbrains.jps.cmdline.Launcher
 
-    $ hsperfdata-go stat 21916
+    $ hsstat 21916
     sun.rt._sync_Inflations=13
     sun.rt._sync_Deflations=11
     sun.rt._sync_ContendedLockAttempts=65
@@ -25,10 +30,11 @@ jstat/jps is slow. And these commands aren't programmable.
 ## Benchmarking
 
 ```
-$ time ./hsperfdata-go ps
+$ time hsps
 13223
 21916 org.jetbrains.jps.cmdline.Launcher
-./hsperfdata-go ps  0.00s user 0.00s system 83% cpu 0.010 total
+hsps  0.00s user 0.00s system 83% cpu 0.010 total
+
 $ time jps
 13223
 21916 Launcher
