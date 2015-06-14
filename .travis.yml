@@ -2,13 +2,14 @@ language: go
 go:
   - 1.4
 sudo: false
+before_script:
+  - go get github.com/mitchellh/gox
+  - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
+  - go get github.com/tcnksm/ghr
 env:
   - "PATH=/home/travis/gopath/bin:$PATH"
 script:
   - go test -v ./...
 after_success:
-  - go get github.com/mitchellh/gox
-  - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
   - gox -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386 -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}" ./...
-  - go get github.com/tcnksm/ghr
   - ghr --username tokuhirom --token $GITHUB_TOKEN --delete=true pre-release dist/
