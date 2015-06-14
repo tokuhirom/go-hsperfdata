@@ -7,9 +7,24 @@ before_script:
   - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
   - go get github.com/tcnksm/ghr
 env:
-  - "PATH=/home/travis/gopath/bin:$PATH"
+  - PATH=/home/travis/gopath/bin:$PATH
 script:
   - go test -v ./...
 after_success:
   - gox -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386 -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}" ./...
-  - ghr --username tokuhirom --token $GITHUB_TOKEN --delete=true pre-release dist/
+deploy:
+  provider: releases
+  api_key:
+    secure: shRAMtd/IVAWskUMr6p6ny32vSXlEOK5WbGmeTH2s7gD5OE96ATIBH4jF1/PTU+iJmjlsQFpy+1s6fUBYK3POlCKRvRkQe679GYU7aU0BLa4+vlemFSnFJ4lQx+hSeHUqzS1s+InpszrxUAFxMOGtKJgx82djp9v7ASyuZKPUoK0bQcYkGUzdZzXY5c/NoU3tLazy0FDly1bCnR7/Jz4T98i+3lTi7pmGbfYLPJk9ScWdgxrj26vmtGbTIZuvXmf9uyVlIMNJ5P/6x1w7TbgIl+GlSLa/nlg12EomXtY3ftlejFliDAH7mBC6OzX9R7IUPxIl/bXPPs0MyQSkPiWcecHOEoQrh3l/m9/HnM0qRzqR8qVac+5Q13FcPyZ7IayLE94XLx6eTSkY0f8IhAe/HGFkrVC0kymz+XRWXT9NszFZ9H7Ndunuh9bKAPK9PzouWBh6uwnY+y8GpvUaohmLaG5o8DMP2kZNEsTB7XWQIF3/Opc1FuAyC4UDc9xBIK3qvIf8G65nnb8pBKVnTnEmIedQnKWyblfs/MDpHAqLtTMutazTKHPgmsACEXI242wpMt0VmORw9UAMAfzDd3UN2XAsZI0+E0AhAd3WQbk5T3//W0ByEluMmwEiSmUdw+hoBCi2LJtcj8nAE2v3nLGASs2yg988eQocAEO5HtOEVQ=
+  file:
+    - dist/darwin_amd64_hsps
+    - dist/darwin_amd64_hsstat
+    - dist/linux_amd64_hsps
+    - dist/linux_amd64_hsstat
+    - dist/windows_386_hsps.exe
+    - dist/windows_386_hsstat.exe
+  on:
+    repo: tokuhirom/go-hsperfdata
+    tags: true
+  skip_cleanup: true
+
