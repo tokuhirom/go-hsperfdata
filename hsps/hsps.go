@@ -1,12 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 	"log"
 )
 
 func main() {
+	version := flag.Bool("v", false, "show version")
+	flag.Parse()
+
+	if *version {
+		fmt.Printf("%v\n", hsperfdata.GetVersion())
+		return
+	}
+
 	repo, err := hsperfdata.New()
 	if err != nil {
 		log.Fatal("user", err)

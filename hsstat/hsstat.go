@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 	"log"
@@ -8,6 +9,14 @@ import (
 )
 
 func main() {
+	version := flag.Bool("v", false, "show version")
+	flag.Parse()
+
+	if *version {
+		fmt.Printf("%v\n", hsperfdata.GetVersion())
+		return
+	}
+
 	if len(os.Args) == 1 {
 		fmt.Printf("Usage: hsstat pid\n")
 		return
