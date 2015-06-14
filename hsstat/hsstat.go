@@ -8,12 +8,18 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 1 {
+		fmt.Printf("Usage: hsstat pid\n")
+		return
+	}
+
+	pid := os.Args[1]
+
 	repository, err := hsperfdata.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pid := os.Args[1]
 	file := repository.GetFile(pid)
 	ch, err := file.ReadHsperfdata()
 	if err != nil {
