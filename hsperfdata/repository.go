@@ -12,11 +12,12 @@ type HsperfdataRepository struct {
 }
 
 func New() (*HsperfdataRepository, error) {
-	user, err := user.Current()
-	if err != nil {
-		return nil, err
+	user := os.Getenv("USER")
+	if user == "" {
+		return nil, fmt.Errorf("error: Environment variable USER not set")
 	}
-	return NewUser(user.Username)
+
+	return NewUser(user)
 }
 
 func NewUser(userName string) (*HsperfdataRepository, error) {
