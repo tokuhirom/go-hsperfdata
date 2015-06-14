@@ -1,7 +1,7 @@
 all: hsstat/hsstat hsps/hsps
 
 test:
-	cd hsperfdata && go test
+	go test -v ./...
 
 hsstat/hsstat: hsstat/hsstat.go
 	cd hsstat && go build
