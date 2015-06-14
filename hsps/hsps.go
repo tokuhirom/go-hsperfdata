@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../hsperfdata"
 	"fmt"
+	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 	"log"
 )
 
