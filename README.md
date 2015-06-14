@@ -4,6 +4,11 @@
 
 HotSpot JVM's performance data analyzer written in Golang.
 
+## What's this?
+
+Parser library for HotSpot JVM's performance data.
+And there is some useful commands built on it.
+
 ## Why?
 
 jstat/jps is slow. And these commands aren't programmable.
