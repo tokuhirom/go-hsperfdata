@@ -9,6 +9,6 @@ script:
 after_success:
   - go get github.com/mitchellh/gox
   - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
-  - go get github.com/tcnksm/ghr
   - gox -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386 -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}" ./...
+  - go get github.com/tcnksm/ghr
   - ghr --username tokuhirom --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
