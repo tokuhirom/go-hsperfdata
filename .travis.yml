@@ -11,4 +11,4 @@ after_success:
   - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
   - gox -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386 -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}" ./...
   - go get github.com/tcnksm/ghr
-  - ghr --username tokuhirom --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
+  - ghr --username tokuhirom --token $GITHUB_TOKEN --delete=true pre-release dist/
