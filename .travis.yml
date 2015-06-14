@@ -8,7 +8,7 @@ script:
   - go test -v ./...
 after_success:
   - go get github.com/mitchellh/gox
-  - gox -build-toolchain
+  - gox -build-toolchain -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386
   - go get github.com/tcnksm/ghr
-  - gox -output "dist/{.OS}_{.Arch}_{.Dir}"
-  - ghr --username tcnksm-sample --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
+  - gox -osarch=darwin/amd64 -osarch=linux/amd64 -osarch=windows/386 -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}" ./...
+  - ghr --username tokuhirom --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
