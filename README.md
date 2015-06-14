@@ -1,5 +1,7 @@
 # hsperfdata-go
 
+[![Build Status](https://travis-ci.org/tokuhirom/hsperfdata-go.svg?branch=master)](https://travis-ci.org/tokuhirom/hsperfdata-go)
+
 HotSpot JVM's performance data analyzer written in Golang.
 
 ## Why?
