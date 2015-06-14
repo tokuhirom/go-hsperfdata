@@ -1,4 +1,4 @@
-# hsperfdata-go
+# go-hsperfdata
 
 [![Build Status](https://travis-ci.org/tokuhirom/go-hsperfdata.svg?branch=master)](https://travis-ci.org/tokuhirom/go-hsperfdata)
 
