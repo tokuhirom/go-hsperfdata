@@ -2,9 +2,6 @@ language: go
 go:
   - 1.4
 sudo: false
-cache:
-  directories:
-    - /home/travis/gopath/
 env:
   - "PATH=/home/travis/gopath/bin:$PATH"
 script:
