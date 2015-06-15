@@ -37,8 +37,6 @@ func (file *HsperfdataFile) GetProcName() (string, error) {
 }
 
 func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
-	ch := make(chan DataEntry)
-
 	file, err := os.Open(datafile.filename)
 	if err != nil {
 		return nil, err
@@ -81,6 +79,8 @@ func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
 			return nil, errors.New("not accessible")
 		}
 	}
+
+	ch := make(chan DataEntry)
 
 	go func() {
 		start_offset := prologue.EntryOffset

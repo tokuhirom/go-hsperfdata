@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 type HsperfdataRepository struct {
@@ -12,7 +13,12 @@ type HsperfdataRepository struct {
 }
 
 func New() (*HsperfdataRepository, error) {
-	user := os.Getenv("USER")
+	var user string
+	if runtime.GOOS == "windows" {
+		user = os.Getenv("USERNAME")
+	} else {
+		user = os.Getenv("USER")
+	}
 	if user == "" {
 		return nil, fmt.Errorf("error: Environment variable USER not set")
 	}
