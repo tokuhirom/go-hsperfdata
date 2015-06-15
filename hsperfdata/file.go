@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -17,7 +17,7 @@ type HsperfdataFile struct {
 }
 
 func (file *HsperfdataFile) GetPid() string {
-	return path.Base(file.filename)
+	return filepath.Base(file.filename)
 }
 
 func (file *HsperfdataFile) GetProcName() (string, error) {
