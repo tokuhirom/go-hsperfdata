@@ -7,8 +7,17 @@ import (
 	"log"
 )
 
+func newRepository(user string) (*hsperfdata.HsperfdataRepository,error) {
+	if user == "" {
+		return hsperfdata.New()
+	} else {
+		return hsperfdata.NewUser(user)
+	}
+}
+
 func main() {
 	version := flag.Bool("v", false, "show version")
+	user := flag.String("u", "", "user")
 	flag.Parse()
 
 	if *version {
@@ -16,7 +25,7 @@ func main() {
 		return
 	}
 
-	repo, err := hsperfdata.New()
+	repo, err := newRepository(*user)
 	if err != nil {
 		log.Fatal("user", err)
 	}
