@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -92,20 +94,27 @@ func draw_all(repo *hsperfdata.HsperfdataRepository) {
 }
 
 func main() {
+	logfile := flag.String("log", "", "log file")
+	flag.Parse()
+
 	err := termbox.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer termbox.Close()
 
-	f, err := os.OpenFile("/tmp/hstop.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
+	if *logfile != "" {
+		f, err := os.OpenFile(*logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("error opening file: %v", err)
+		}
+		defer f.Close()
 
-	log.SetOutput(f)
-	log.Println("started hstop")
+		log.SetOutput(f)
+		log.Println("started hstop")
+	} else {
+		log.SetOutput(ioutil.Discard)
+	}
 
 	repo, err := hsperfdata.New()
 	if err != nil {
