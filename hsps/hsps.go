@@ -36,7 +36,7 @@ func main() {
 
 	for _, f := range files {
 		result, err := f.Read()
-		if err != nil {
+		if err == nil {
 			proc_name := result.GetProcName()
 			fmt.Printf("%s %s\n", f.GetPid(), proc_name)
 		} else {
