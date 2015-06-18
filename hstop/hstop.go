@@ -59,7 +59,7 @@ func size(n uint64) string {
 	}
 }
 
-func draw_all(repo *hsperfdata.HsperfdataRepository) {
+func draw_all(repo *hsperfdata.Repository) {
 	log.Println("draw_all")
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 

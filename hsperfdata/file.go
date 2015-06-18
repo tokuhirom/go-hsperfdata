@@ -11,15 +11,15 @@ import (
 	"strings"
 )
 
-type HsperfdataFile struct {
+type File struct {
 	filename string
 }
 
-func (file *HsperfdataFile) GetPid() string {
+func (file *File) GetPid() string {
 	return filepath.Base(file.filename)
 }
 
-func (datafile *HsperfdataFile) Read() (*Result, error) {
+func (datafile *File) Read() (*Result, error) {
 	file, err := os.Open(datafile.filename)
 	if err != nil {
 		return nil, err

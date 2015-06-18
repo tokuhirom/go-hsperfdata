@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func newRepository(user string) (*hsperfdata.HsperfdataRepository, error) {
+func newRepository(user string) (*hsperfdata.Repository, error) {
 	if user == "" {
 		return hsperfdata.New()
 	} else {

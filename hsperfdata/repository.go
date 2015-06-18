@@ -8,11 +8,11 @@ import (
 	"runtime"
 )
 
-type HsperfdataRepository struct {
+type Repository struct {
 	dir string
 }
 
-func New() (*HsperfdataRepository, error) {
+func New() (*Repository, error) {
 	var user string
 	if runtime.GOOS == "windows" {
 		user = os.Getenv("USERNAME")
@@ -26,23 +26,23 @@ func New() (*HsperfdataRepository, error) {
 	return NewUser(user)
 }
 
-func NewUser(userName string) (*HsperfdataRepository, error) {
+func NewUser(userName string) (*Repository, error) {
 	dir := filepath.Join(os.TempDir(), "hsperfdata_"+userName)
-	return &HsperfdataRepository{dir}, nil
+	return &Repository{dir}, nil
 }
 
-func (repository *HsperfdataRepository) GetFile(pid string) HsperfdataFile {
-	return HsperfdataFile{filepath.Join(repository.dir, pid)}
+func (repository *Repository) GetFile(pid string) File {
+	return File{filepath.Join(repository.dir, pid)}
 }
 
-func (repository *HsperfdataRepository) GetFiles() ([]HsperfdataFile, error) {
+func (repository *Repository) GetFiles() ([]File, error) {
 	files, err := ioutil.ReadDir(repository.dir)
 	if err != nil {
 		return nil, err
 	}
-	retval := make([]HsperfdataFile, len(files))
+	retval := make([]File, len(files))
 	for i, f := range files {
-		retval[i] = HsperfdataFile{filepath.Join(repository.dir, f.Name())}
+		retval[i] = File{filepath.Join(repository.dir, f.Name())}
 	}
 
 	return retval, nil
