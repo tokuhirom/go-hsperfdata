@@ -19,7 +19,7 @@ func (file *HsperfdataFile) GetPid() string {
 	return filepath.Base(file.filename)
 }
 
-func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
+func (datafile *HsperfdataFile) Read() (*Result, error) {
 	file, err := os.Open(datafile.filename)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
 		}
 	}
 
-	result := &HsperfdataResult{make(map[string]interface{})}
+	result := &Result{make(map[string]interface{})}
 
 	start_offset := prologue.EntryOffset
 
@@ -113,15 +113,15 @@ func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
 	return result, nil
 }
 
-type HsperfdataResult struct {
+type Result struct {
 	data map[string]interface{}
 }
 
-func (self *HsperfdataResult) GetMap() map[string]interface{} {
+func (self *Result) GetMap() map[string]interface{} {
 	return self.data
 }
 
-func (self *HsperfdataResult) GetProcName() string {
+func (self *Result) GetProcName() string {
 	javaCommand := self.data["sun.rt.javaCommand"]
 	if javaCommand != nil {
 		if str, ok := javaCommand.(string); ok {
@@ -135,7 +135,7 @@ func (self *HsperfdataResult) GetProcName() string {
 	}
 }
 
-func (self *HsperfdataResult) GetString(key string) string {
+func (self *Result) GetString(key string) string {
 	v := self.data[key]
 	if v != nil {
 		if str, ok := v.(string); ok {
