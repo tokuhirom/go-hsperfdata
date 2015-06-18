@@ -132,3 +132,47 @@ func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
 
 	return ch, err
 }
+
+func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
+	ch, err := datafile.ReadHsperfdata()
+	if err != nil {
+		return nil, err
+	}
+
+	result := &HsperfdataResult{make(map[string]interface{})}
+	for entry := range ch {
+		result.data[entry.Key] = entry.Value
+	}
+	return result, nil
+}
+
+type HsperfdataResult struct {
+	data map[string]interface{}
+}
+
+func (self *HsperfdataResult) GetProcName() string {
+	javaCommand := self.data["sun.rt.javaCommand"]
+	if javaCommand != nil {
+		if str, ok := javaCommand.(string); ok {
+			splitted := strings.SplitN(str, " ", 2)
+			return splitted[0]
+		} else {
+			return ""
+		}
+	} else {
+		return ""
+	}
+}
+
+func (self *HsperfdataResult) GetString(key string) string {
+	v := self.data[key]
+	if v != nil {
+		if str, ok := v.(string); ok {
+			return str
+		} else {
+			return ""
+		}
+	} else {
+		return ""
+	}
+}
