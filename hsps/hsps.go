@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func newRepository(user string) (*hsperfdata.HsperfdataRepository,error) {
+func newRepository(user string) (*hsperfdata.HsperfdataRepository, error) {
 	if user == "" {
 		return hsperfdata.New()
 	} else {
@@ -35,10 +35,12 @@ func main() {
 	}
 
 	for _, f := range files {
-		proc_name, err := f.GetProcName()
+		result, err := f.Read()
 		if err != nil {
-			log.Fatal("procname", err)
+			proc_name := result.GetProcName()
+			fmt.Printf("%s %s\n", f.GetPid(), proc_name)
+		} else {
+			fmt.Printf("%s unknown\n", f.GetPid())
 		}
-		fmt.Printf("%s %s\n", f.GetPid(), proc_name)
 	}
 }

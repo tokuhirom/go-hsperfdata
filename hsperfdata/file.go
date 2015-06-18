@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,23 +19,7 @@ func (file *HsperfdataFile) GetPid() string {
 	return filepath.Base(file.filename)
 }
 
-func (file *HsperfdataFile) GetProcName() (string, error) {
-	ch, err := file.ReadHsperfdata()
-	if err != nil {
-		return "", err
-	}
-	for entry := range ch {
-		if entry.Key == "sun.rt.javaCommand" {
-			if str, ok := entry.Value.(string); ok {
-				splitted := strings.SplitN(str, " ", 2)
-				return splitted[0], nil
-			}
-		}
-	}
-	return "", errors.New("there's no sun.rt.javaCommand")
-}
-
-func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
+func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
 	file, err := os.Open(datafile.filename)
 	if err != nil {
 		return nil, err
@@ -80,74 +63,62 @@ func (datafile *HsperfdataFile) ReadHsperfdata() (chan DataEntry, error) {
 		}
 	}
 
-	ch := make(chan DataEntry)
+	result := &HsperfdataResult{make(map[string]interface{})}
 
-	go func() {
-		start_offset := prologue.EntryOffset
+	start_offset := prologue.EntryOffset
 
-		parsed_entries := int32(0)
+	parsed_entries := int32(0)
 
-		for parsed_entries < prologue.NumEntries {
-			entry := DataEntryHeader2{}
-			buffer := bytes.NewBuffer(data[start_offset:])
-			err = binary.Read(buffer, header.GetEndian(), &entry)
-			if err != nil {
-				log.Fatal("binary.read", err)
-			}
-
-			name_start := int(start_offset) + int(entry.NameOffset)
-			name_end := bytes.Index(data[name_start:], []byte{'\x00'})
-			if name_end == -1 {
-				log.Fatal("invalid format", nil)
-			}
-			name := string(data[name_start : int(name_start)+name_end])
-			data_start := start_offset + entry.DataOffset
-
-			if entry.VectorLength == 0 {
-				if entry.DataType != TYPE_LONG {
-					log.Fatal("Unexpected monitor type", nil)
-				}
-				i := int64(0)
-				buffer := bytes.NewBuffer(data[data_start : data_start+8])
-				err = binary.Read(buffer, header.GetEndian(), &i)
-				if err != nil {
-					log.Fatal("binary.read", err)
-				}
-				ch <- DataEntry{name, fmt.Sprintf("%v", i)}
-			} else {
-				if entry.DataType != TYPE_BYTE || entry.DataUnits != UNITS_STRING || (entry.DataVar != VARIABILITY_CONSTANT && entry.DataVar != VARIABILITY_VARIABLE) {
-					log.Fatal(fmt.Sprintf("Unexpected vector monitor: DataType:%c,DataUnits:%v,DataVar:%v", entry.DataType, entry.DataUnits, entry.DataVar), nil)
-				}
-				value := strings.TrimSuffix(strings.TrimSuffix(strings.TrimSuffix(string(data[data_start:data_start+entry.VectorLength]), "\r"), "\n"), "\x00")
-
-				ch <- DataEntry{name, value}
-			}
-
-			start_offset += entry.EntryLength
-			parsed_entries++
+	for parsed_entries < prologue.NumEntries {
+		entry := DataEntryHeader2{}
+		buffer := bytes.NewBuffer(data[start_offset:])
+		err = binary.Read(buffer, header.GetEndian(), &entry)
+		if err != nil {
+			return nil, fmt.Errorf("Cannot read binary: %v", err)
 		}
 
-		close(ch)
-	}()
+		name_start := int(start_offset) + int(entry.NameOffset)
+		name_end := bytes.Index(data[name_start:], []byte{'\x00'})
+		if name_end == -1 {
+			return nil, fmt.Errorf("invalid binary: %v", err)
+		}
+		name := string(data[name_start : int(name_start)+name_end])
+		data_start := start_offset + entry.DataOffset
 
-	return ch, err
-}
+		if entry.VectorLength == 0 {
+			if entry.DataType != TYPE_LONG {
+				return nil, fmt.Errorf("Unexpected monitor type: %v", entry.DataType)
+			}
+			i := int64(0)
+			buffer := bytes.NewBuffer(data[data_start : data_start+8])
+			err = binary.Read(buffer, header.GetEndian(), &i)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot read binary: %v", err)
+			}
 
-func (datafile *HsperfdataFile) Read() (*HsperfdataResult, error) {
-	ch, err := datafile.ReadHsperfdata()
-	if err != nil {
-		return nil, err
+			result.data[name] = fmt.Sprintf("%v", i)
+		} else {
+			if entry.DataType != TYPE_BYTE || entry.DataUnits != UNITS_STRING || (entry.DataVar != VARIABILITY_CONSTANT && entry.DataVar != VARIABILITY_VARIABLE) {
+				return nil, fmt.Errorf("Unexpected vector monitor: DataType:%c,DataUnits:%v,DataVar:%v", entry.DataType, entry.DataUnits, entry.DataVar)
+			}
+			value := strings.TrimSuffix(strings.TrimSuffix(strings.TrimSuffix(string(data[data_start:data_start+entry.VectorLength]), "\r"), "\n"), "\x00")
+
+			result.data[name] = value
+		}
+
+		start_offset += entry.EntryLength
+		parsed_entries++
 	}
 
-	result := &HsperfdataResult{make(map[string]interface{})}
-	for entry := range ch {
-		result.data[entry.Key] = entry.Value
-	}
 	return result, nil
 }
 
 type HsperfdataResult struct {
 	data map[string]interface{}
+}
+
+func (self *HsperfdataResult) GetMap() map[string]interface{} {
+	return self.data
 }
 
 func (self *HsperfdataResult) GetProcName() string {

@@ -39,12 +39,12 @@ func main() {
 	}
 
 	file := repo.GetFile(pid)
-	ch, err := file.ReadHsperfdata()
+	result, err := file.Read()
 	if err != nil {
 		log.Fatal("open fail", err)
 	}
 
-	for entry := range ch {
-		fmt.Printf("%s=%v\n", entry.Key, entry.Value)
+	for key, value := range result.GetMap() {
+		fmt.Printf("%s=%v\n", key, value)
 	}
 }
