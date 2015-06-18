@@ -6,12 +6,19 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	linuxproc "github.com/c9s/goprocinfo/linux"
 	termbox "github.com/nsf/termbox-go"
 	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
+	"github.com/tokuhirom/go-hsperfdata/hstop/core"
+	"github.com/tokuhirom/go-hsperfdata/hstop/fields"
 )
+
+type MachineTopRenderer struct {
+	fields []core.Field
+}
 
 func print_cell(x_offset int, y int, s string) {
 	for x, c := range s {
@@ -27,7 +34,7 @@ func shorten_main_class_name(class_name string, length int) string {
 	}
 }
 
-func print_headers() int {
+func (self *MachineTopRenderer) print_headers() int {
 	y := 0
 
 	loadavg, err := linuxproc.ReadLoadAvg("/proc/loadavg")
@@ -40,31 +47,27 @@ func print_headers() int {
 	y++
 	y++
 
-	// T# : The total number of running threads
-	buf := fmt.Sprintf("%5s %15s %3s %8s %8s %3s", "PID", "MAIN-CLASS", "NI", "VSIZE", "RSS", "T#")
-	print_cell(0, y, buf)
-
+	{
+		x := 0
+		for _, field := range self.fields {
+			buf := fmt.Sprintf("%"+strconv.Itoa(field.GetWidth())+"s ", field.GetTitle())
+			print_cell(x, y, buf)
+			x += len(buf)
+		}
+	}
 	y++
+
+	// T# : The total number of running threads
 
 	return y
 }
 
-func size(n uint64) string {
-	if n > 1000*1000 {
-		return fmt.Sprintf("%.1fM", (float64(n) / (1000 * 1000)))
-	} else if n > 1000 {
-		return fmt.Sprintf("%.1fk", (float64(n) / 1000))
-	} else {
-		return fmt.Sprintf("%v", n)
-	}
-}
-
-func draw_all(repo *hsperfdata.Repository) {
+func (self *MachineTopRenderer) draw_all(repo *hsperfdata.Repository) {
 	log.Println("draw_all")
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	// print header
-	header_lines := print_headers()
+	header_lines := self.print_headers()
 
 	files, err := repo.GetFiles()
 	if err != nil {
@@ -78,17 +81,20 @@ func draw_all(repo *hsperfdata.Repository) {
 		}
 
 		pid := file.GetPid()
-
-		buf := fmt.Sprintf("%5s %15s", file.GetPid(), shorten_main_class_name(info.GetProcName(), 15))
 		stat, err := linuxproc.ReadProcessStat("/proc/" + pid + "/stat")
-		if err == nil {
-			buf += fmt.Sprintf(" %3d %8s %8s", stat.Nice, size(stat.Vsize), size(uint64(stat.Rss)))
-		} else {
-			buf += fmt.Sprintf(" %3s %8s %8s", "N/A", "N/A", "N/A")
+		if err != nil {
+			log.Printf("Cannot read /proc/%d/stat: %v", pid, err)
 		}
-		buf += fmt.Sprintf(" %3s", info.GetString("java.threads.live"))
 
-		print_cell(0, y+header_lines, buf)
+		state := &core.State{file.GetPid(), stat, info}
+		{
+			x := 0
+			for _, field := range self.fields {
+				buf := field.Render(state)
+				print_cell(x, y+header_lines, buf)
+				x += len(buf) + 1
+			}
+		}
 	}
 	termbox.Flush()
 }
@@ -121,11 +127,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	draw_all(repo)
+	renderer := &MachineTopRenderer{
+		[]core.Field{
+			&fields.PidField{},
+			&fields.MainClassField{},
+			&fields.NiceField{},
+			&fields.VsizeField{},
+			&fields.RssField{},
+			&fields.ThreadsField{},
+		},
+	}
+
+	renderer.draw_all(repo)
 	ticker := time.NewTicker(1 * time.Second)
 	go func() {
 		for range ticker.C {
-			draw_all(repo)
+			renderer.draw_all(repo)
 		}
 	}()
 
@@ -138,9 +155,9 @@ L:
 			case termbox.KeyCtrlC:
 				break L
 			}
-			draw_all(repo)
+			renderer.draw_all(repo)
 		case termbox.EventResize:
-			draw_all(repo)
+			renderer.draw_all(repo)
 		}
 	}
 }
