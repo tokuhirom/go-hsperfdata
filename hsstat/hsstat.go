@@ -38,7 +38,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	file := repository.GetFile(pid)
+	file := repo.GetFile(pid)
 	ch, err := file.ReadHsperfdata()
 	if err != nil {
 		log.Fatal("open fail", err)
