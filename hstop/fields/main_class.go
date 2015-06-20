@@ -2,7 +2,8 @@ package fields
 
 import (
 	"fmt"
-	"github.com/tokuhirom/go-hsperfdata/hstop/core"
+
+	"github.com/tokuhirom/go-hsperfdata/hstop/state"
 )
 
 type MainClassField struct {
@@ -24,6 +25,6 @@ func shorten_main_class_name(class_name string, length int) string {
 	}
 }
 
-func (*MainClassField) Render(state *core.State) string {
+func (*MainClassField) Render(state *state.State) string {
 	return fmt.Sprintf("%15s", shorten_main_class_name(state.Result.GetProcName(), 15))
 }

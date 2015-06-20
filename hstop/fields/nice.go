@@ -2,7 +2,8 @@ package fields
 
 import (
 	"fmt"
-	"github.com/tokuhirom/go-hsperfdata/hstop/core"
+
+	"github.com/tokuhirom/go-hsperfdata/hstop/state"
 )
 
 type NiceField struct {
@@ -16,6 +17,6 @@ func (*NiceField) GetWidth() int {
 	return 3
 }
 
-func (*NiceField) Render(state *core.State) string {
-	return fmt.Sprintf("%3d", state.Process.Nice)
+func (*NiceField) Render(state *state.State) string {
+	return fmt.Sprintf("%3d", state.GetNice())
 }

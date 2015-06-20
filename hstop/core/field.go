@@ -1,7 +1,9 @@
 package core
 
+import state "github.com/tokuhirom/go-hsperfdata/hstop/state"
+
 type Field interface {
 	GetTitle() string
 	GetWidth() int
-	Render(*State) string
+	Render(*state.State) string
 }

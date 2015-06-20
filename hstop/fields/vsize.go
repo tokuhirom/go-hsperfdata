@@ -2,7 +2,8 @@ package fields
 
 import (
 	"fmt"
-	"github.com/tokuhirom/go-hsperfdata/hstop/core"
+
+	"github.com/tokuhirom/go-hsperfdata/hstop/state"
 	"github.com/tokuhirom/go-hsperfdata/hstop/support"
 )
 
@@ -17,6 +18,6 @@ func (*VsizeField) GetWidth() int {
 	return 8
 }
 
-func (*VsizeField) Render(state *core.State) string {
-	return fmt.Sprintf("%8s", support.Size(state.Process.Vsize))
+func (*VsizeField) Render(state *state.State) string {
+	return fmt.Sprintf("%8s", support.Size(state.GetVsize()))
 }

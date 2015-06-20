@@ -14,6 +14,7 @@ import (
 	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 	"github.com/tokuhirom/go-hsperfdata/hstop/core"
 	"github.com/tokuhirom/go-hsperfdata/hstop/fields"
+	"github.com/tokuhirom/go-hsperfdata/hstop/state"
 )
 
 type MachineTopRenderer struct {
@@ -80,13 +81,11 @@ func (self *MachineTopRenderer) draw_all(repo *hsperfdata.Repository) {
 			continue
 		}
 
-		pid := file.GetPid()
-		stat, err := linuxproc.ReadProcessStat("/proc/" + pid + "/stat")
+		state, err := state.New(file.GetPid(), info)
 		if err != nil {
-			log.Printf("Cannot read /proc/%d/stat: %v", pid, err)
+			log.Printf("%v", err)
 		}
 
-		state := &core.State{file.GetPid(), stat, info}
 		{
 			x := 0
 			for _, field := range self.fields {
