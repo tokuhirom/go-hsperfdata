@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type File struct {
@@ -17,6 +16,16 @@ type File struct {
 
 func (file *File) GetPid() string {
 	return filepath.Base(file.filename)
+}
+
+// remove bytes after '\0'
+func remove_after_nul(s []byte) []byte {
+	n := bytes.IndexByte(s, '\x00')
+	if n >= 0 {
+		return s[:n]
+	} else {
+		return s
+	}
 }
 
 func (datafile *File) Read() (*Result, error) {
@@ -101,7 +110,7 @@ func (datafile *File) Read() (*Result, error) {
 			if entry.DataType != TYPE_BYTE || entry.DataUnits != UNITS_STRING || (entry.DataVar != VARIABILITY_CONSTANT && entry.DataVar != VARIABILITY_VARIABLE) {
 				return nil, fmt.Errorf("Unexpected vector monitor: DataType:%c,DataUnits:%v,DataVar:%v", entry.DataType, entry.DataUnits, entry.DataVar)
 			}
-			value := strings.TrimSuffix(strings.TrimSuffix(strings.TrimSuffix(string(data[data_start:data_start+entry.VectorLength]), "\r"), "\n"), "\x00")
+			value := string(remove_after_nul(data[data_start : data_start+entry.VectorLength]))
 
 			result.data[name] = value
 		}

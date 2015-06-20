@@ -30,6 +30,14 @@ func TestNew(t *testing.T) {
 		t.Errorf("sun.property.sun.boot.library.path miss match: '%#v'(len:%d) != '%#v'(len:%d)", path, len(path), expected, len(expected))
 	}
 
+	{
+		lastMethod := result.GetString("sun.ci.lastMethod")
+		expected := "java/util/PriorityQueue$Itr <init>"
+		if lastMethod != expected {
+			t.Errorf("sun.ci.lastMethod: '%#v'(len:%d) != '%#v'(len:%d)", lastMethod, len(lastMethod), expected, len(expected))
+		}
+	}
+
 	files, err := repo.GetFiles()
 	if err != nil {
 		t.Error(err)
