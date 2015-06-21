@@ -35,3 +35,9 @@ func (self *State) GetNice() int64 {
 func (self *State) GetRss() int64 {
 	return self.process.Rss
 }
+
+func (self *State) GetVMInfo() string {
+	vendor := self.Result.GetString("java.property.java.vm.vendor")
+	version := self.Result.GetString("java.property.java.version")
+	return vendor[:1] + version[2:]
+}

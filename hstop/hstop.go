@@ -134,6 +134,7 @@ func main() {
 			&fields.VsizeField{},
 			&fields.RssField{},
 			&fields.ThreadsField{},
+			&fields.VMField{},
 		},
 	}
 
