@@ -52,6 +52,7 @@ func (sock *Socket) ReadString() (string, error) {
 }
 
 // see classes/sun/tools/attach/LinuxVirtualMachine.java
+// see classes/sun/tools/attach/HotSpotVirtualMachine.java for available commands
 func (sock *Socket) Execute(cmd string, args ...string) error {
 	err := sock.writeString(PROTOCOL_VERSION)
 	if err != nil {

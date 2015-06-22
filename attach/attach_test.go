@@ -13,12 +13,12 @@ func Test(t *testing.T) {
 	}
 
 	files, err := repo.GetFiles()
-	if err != nil {
-		t.Error(err)
+	if files == nil || len(files) == 0 {
+		t.Skipf("No java process")
 	}
 
-	if len(files) == 0 {
-		t.Skipf("No java process")
+	if err != nil {
+		t.Error(err)
 	}
 
 	file := files[0]
