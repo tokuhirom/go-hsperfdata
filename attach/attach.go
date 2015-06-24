@@ -31,6 +31,10 @@ func New(pid string) (*Socket, error) {
 	return &Socket{c}, nil
 }
 
+func (self *Socket) Close() error {
+	return self.sock.Close()
+}
+
 func (sock *Socket) Read(b []byte) (int, error) {
 	return sock.sock.Read(b)
 }
@@ -49,6 +53,16 @@ func (sock *Socket) ReadString() (string, error) {
 		retval += string(buf[0 : read-1])
 	}
 	return retval, nil
+}
+
+// jstack
+func (sock *Socket) RemoteDataDump() (string, error) {
+	err := sock.Execute("threaddump")
+	if err != nil {
+		return "", err
+	}
+
+	return sock.ReadString()
 }
 
 // see classes/sun/tools/attach/LinuxVirtualMachine.java
