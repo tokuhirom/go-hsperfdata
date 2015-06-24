@@ -1,13 +1,26 @@
 package attach
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+	"syscall"
+	"time"
 )
 
+func exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+// see classes/sun/tools/attach/BsdVirtualMachine.java in openjdk
 func force_attach(pid int) error {
-	attach_file := fmt.Sprintf("/proc/%d/cwd/.attach_pid%d", pid, pid)
+	attach_file := filepath.Join(os.TempDir(), fmt.Sprintf(".attach_pid%d", pid))
 	f, err := os.Create(attach_file)
 	if err != nil {
 		return fmt.Errorf("Canot create file:%v:%v", attach_file, err)
@@ -40,7 +53,7 @@ func GetSocketFile(pid int) (string, error) {
 	return sockfile, nil
 }
 
-func New(pid string) (*Socket, error) {
+func New(pid int) (*Socket, error) {
 	sockfile, err := GetSocketFile(pid)
 	if err != nil {
 		return nil, err
@@ -50,9 +63,6 @@ func New(pid string) (*Socket, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO: implement force attach feature.
-	// see classes/sun/tools/attach/LinuxVirtualMachine.java in openjdk
 
 	c, err := net.DialUnix("unix", nil, addr)
 	if err != nil {

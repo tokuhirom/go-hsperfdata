@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"time"
 
 	termbox "github.com/nsf/termbox-go"
@@ -15,7 +16,7 @@ import (
 )
 
 type HsSampler struct {
-	pid        string
+	pid        int
 	re         *regexp.Regexp
 	logs       []map[string]int
 	limit_logs int
@@ -107,7 +108,7 @@ func (self *HsSampler) scan_methods(stack string) []string {
 	return methods
 }
 
-func NewSampler(pid string, log_limit int) (*HsSampler, error) {
+func NewSampler(pid int, log_limit int) (*HsSampler, error) {
 	re, err := regexp.Compile("at ([^(]+)\\(")
 	if err != nil {
 		return nil, err
@@ -132,7 +133,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	pid := flag.Arg(0)
+	pid, err := strconv.Atoi(flag.Arg(0))
+	if err != nil {
+		log.Fatalf("bad pid: %v", err)
+	}
 
 	sampler, err := NewSampler(pid, *log_limit)
 	if err != nil {
