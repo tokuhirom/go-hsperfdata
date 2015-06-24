@@ -129,7 +129,7 @@ func main() {
 
 	if flag.NArg() != 1 {
 		fmt.Println("Usage: hssampler pid")
-		return
+		os.Exit(1)
 	}
 
 	pid := flag.Arg(0)

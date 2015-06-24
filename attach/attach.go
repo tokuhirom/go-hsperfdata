@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -15,7 +17,7 @@ type Socket struct {
 }
 
 func New(pid string) (*Socket, error) {
-	sockfile := "/tmp/.java_pid" + pid
+	sockfile := filepath.Join(os.TempDir(), ".java_pid"+pid)
 	addr, err := net.ResolveUnixAddr("unix", sockfile)
 	if err != nil {
 		return nil, err
