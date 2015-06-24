@@ -1,10 +1,22 @@
 package attach
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+	"syscall"
+	"time"
 )
+
+func exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
 
 func force_attach(pid int) error {
 	attach_file := fmt.Sprintf("/proc/%d/cwd/.attach_pid%d", pid, pid)
@@ -40,7 +52,7 @@ func GetSocketFile(pid int) (string, error) {
 	return sockfile, nil
 }
 
-func New(pid string) (*Socket, error) {
+func New(pid int) (*Socket, error) {
 	sockfile, err := GetSocketFile(pid)
 	if err != nil {
 		return nil, err
