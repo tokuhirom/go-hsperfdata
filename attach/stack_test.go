@@ -1,10 +1,12 @@
 package attach
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestFoo(t *testing.T) {
+	assert := assert.New(t)
 	threads, err := ParseStack(`
 
 "main" #1 prio=6 os_prio=0 tid=0x00007f357c00a000 nid=0x45c6 runnable [0x00007f358442a000]
@@ -18,19 +20,17 @@ func TestFoo(t *testing.T) {
 
 "VM Periodic Task Thread" os_prio=0 tid=0x00007f357c223000 nid=0x45d1 waiting on condition
 `)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(threads) != 3 {
-		t.Errorf("invalid count: %d", len(threads))
-	}
-	if threads[0].name != "main" {
-		t.Errorf("bad name: %v", threads[0].name)
-	}
-	if threads[1].name != "GC task thread#1 (ParallelGC)" {
-		t.Errorf("bad name: %v", threads[1].name)
-	}
-	if threads[2].name != "VM Periodic Task Thread" {
-		t.Errorf("bad name: %v", threads[2].name)
-	}
+	assert.Nil(err)
+	assert.Equal(len(threads), 3)
+
+	assert.Equal(threads[0].name, "main")
+	assert.Equal(threads[0].state, "RUNNABLE")
+	assert.Equal(len(threads[0].stacks), 4)
+
+	assert.Equal(threads[1].name, "GC task thread#1 (ParallelGC)")
+	assert.Equal(threads[1].state, "")
+	assert.Equal(len(threads[1].stacks), 0)
+
+	assert.Equal(threads[2].name, "VM Periodic Task Thread")
+	assert.Equal(len(threads[2].stacks), 0)
 }
