@@ -2,6 +2,7 @@ package attach
 
 import (
 	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -22,7 +23,11 @@ func Test(t *testing.T) {
 	}
 
 	file := files[0]
-	pid := file.GetPid()
+	pidStr := file.GetPid()
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil {
+		t.Error(err)
+	}
 	sock, err := New(pid)
 	if err != nil {
 		t.Error(err)
