@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 	"log"
+
+	"github.com/tokuhirom/go-hsperfdata/hsperfdata"
 )
 
 func newRepository(user string) (*hsperfdata.Repository, error) {

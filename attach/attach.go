@@ -48,6 +48,15 @@ func (sock *Socket) RemoteDataDump() (string, error) {
 	return sock.ReadString()
 }
 
+func (sock *Socket) Jcmd(args ...string) (string, error) {
+	err := sock.Execute("jcmd", args...)
+	if err != nil {
+		return "", err
+	}
+
+	return sock.ReadString()
+}
+
 // see classes/sun/tools/attach/LinuxVirtualMachine.java
 // see classes/sun/tools/attach/HotSpotVirtualMachine.java for available commands
 func (sock *Socket) Execute(cmd string, args ...string) error {
