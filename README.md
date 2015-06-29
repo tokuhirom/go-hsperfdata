@@ -17,6 +17,8 @@ jstat/jps is slow. And these commands aren't programmable.
 
     go get github.com/tokuhirom/go-hsperfdata/hsps/
     go get github.com/tokuhirom/go-hsperfdata/hsstat/
+    go get github.com/tokuhirom/go-hsperfdata/hssampler/
+    go get github.com/tokuhirom/go-hsperfdata/hsjcmd/
 
 ## SYNOPSIS
 
