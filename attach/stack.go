@@ -6,16 +6,16 @@ import (
 	"strings"
 )
 
-type JavaThread struct {
-	name   string
-	state  string
-	stacks []*StackItem
+type StackItem struct {
+	Method string `json:"method"`
+	File   string `json:"file"`
+	Line   int    `json:"line"`
 }
 
-type StackItem struct {
-	method string
-	file   string
-	line   int
+type JavaThread struct {
+	Name   string       `json:"name"`
+	State  string       `json:"state"`
+	Stacks []*StackItem `json:stacks`
 }
 
 func (self *JavaThread) GetName() string {

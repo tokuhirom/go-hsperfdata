@@ -1,6 +1,7 @@
 package attach
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -21,26 +22,51 @@ func TestFoo(t *testing.T) {
 "VM Periodic Task Thread" os_prio=0 tid=0x00007f357c223000 nid=0x45d1 waiting on condition
 `)
 	assert.Nil(err)
-	assert.Equal(len(threads), 3)
 
-	assert.Equal(threads[0].name, "main")
-	assert.Equal(threads[0].state, "RUNNABLE")
-	assert.Equal(len(threads[0].stacks), 4)
-	assert.Equal(threads[0].stacks[0].method, "org.eclipse.swt.internal.gtk.OS.Call")
-	assert.Equal(threads[0].stacks[0].file, "Native Method")
-	assert.Equal(threads[0].stacks[0].line, -1)
-	assert.Equal(threads[0].stacks[1].method, "org.eclipse.swt.widgets.Display.sleep")
-	assert.Equal(threads[0].stacks[1].file, "Display.java")
-	assert.Equal(threads[0].stacks[1].line, 4294)
-	assert.Equal(threads[0].stacks[2].method, "org.eclipse.ui.application.WorkbenchAdvisor.eventLoopIdle")
-	assert.Equal(threads[0].stacks[2].file, "WorkbenchAdvisor.java")
-	assert.Equal(threads[0].stacks[2].line, 368)
-	assert.Equal(threads[0].stacks[3].method, "org.eclipse.ui.internal.ide.application.IDEWorkbenchAdvisor.eventLoopIdle")
-
-	assert.Equal(threads[1].name, "GC task thread#1 (ParallelGC)")
-	assert.Equal(threads[1].state, "")
-	assert.Equal(len(threads[1].stacks), 0)
-
-	assert.Equal(threads[2].name, "VM Periodic Task Thread")
-	assert.Equal(len(threads[2].stacks), 0)
+	var expected []*JavaThread
+	expectedJSON := `
+    [
+      {
+        "name": "main",
+        "state": "RUNNABLE",
+        "Stacks": [
+          {
+            "method": "org.eclipse.swt.internal.gtk.OS.Call",
+            "file": "Native Method",
+            "line": -1
+          },
+          {
+            "method": "org.eclipse.swt.widgets.Display.sleep",
+            "file": "Display.java",
+            "line": 4294
+          },
+          {
+            "method": "org.eclipse.ui.application.WorkbenchAdvisor.eventLoopIdle",
+            "file": "WorkbenchAdvisor.java",
+            "line": 368
+          },
+          {
+            "method": "org.eclipse.ui.internal.ide.application.IDEWorkbenchAdvisor.eventLoopIdle",
+            "file": "IDEWorkbenchAdvisor.java",
+            "line": 918
+          }
+        ]
+      },
+      {
+        "name": "GC task thread#1 (ParallelGC)",
+        "state": "",
+        "Stacks": []
+      },
+      {
+        "name": "VM Periodic Task Thread",
+        "state": "",
+        "Stacks": []
+      }
+    ]
+	`
+	err = json.Unmarshal([]byte(expectedJSON), &expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(threads, expected)
 }
