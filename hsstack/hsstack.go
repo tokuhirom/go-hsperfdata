@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/tokuhirom/go-hsperfdata/attach"
 	"log"
 	"os"
+	"strconv"
+
+	"github.com/tokuhirom/go-hsperfdata/attach"
 )
 
 func main() {
@@ -12,7 +14,10 @@ func main() {
 		fmt.Printf("Usage: hsstack pid\n")
 		os.Exit(1)
 	}
-	pid := os.Args[1]
+	pid, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		log.Fatal("invalid pid: %v", err)
+	}
 	sock, err := attach.New(pid)
 	if err != nil {
 		log.Fatalf("cannot open unix socket: %s", err)
@@ -23,5 +28,5 @@ func main() {
 	}
 
 	stack, err := sock.ReadString()
-	fmt.Printf("%s", stack)
+	fmt.Printf("%s\n", stack)
 }
