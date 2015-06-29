@@ -29,7 +29,7 @@ func TestFoo(t *testing.T) {
       {
         "name": "main",
         "state": "RUNNABLE",
-        "Stacks": [
+        "Stack": [
           {
             "method": "org.eclipse.swt.internal.gtk.OS.Call",
             "file": "Native Method",
@@ -55,12 +55,12 @@ func TestFoo(t *testing.T) {
       {
         "name": "GC task thread#1 (ParallelGC)",
         "state": "",
-        "Stacks": []
+        "Stack": []
       },
       {
         "name": "VM Periodic Task Thread",
         "state": "",
-        "Stacks": []
+        "Stack": []
       }
     ]
 	`

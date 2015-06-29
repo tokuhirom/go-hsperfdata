@@ -99,11 +99,11 @@ func (self *HsSampler) scan_methods(stack string) []string {
 	threads, err := attach.ParseStack(stack)
 	if err == nil {
 		for _, thread := range threads {
-			stack := thread.GetStack()
+			stack := thread.Stack
 			if len(stack) > 0 {
-				method := stack[0].GetMethod()
+				method := stack[0].Method
 				if method != "java.lang.Object.wait" && method != "java.lang.Thread.run" {
-					methods = append(methods, stack[0].GetMethod())
+					methods = append(methods, stack[0].Method)
 				}
 			}
 		}
