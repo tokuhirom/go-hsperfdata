@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"time"
@@ -17,7 +16,6 @@ import (
 
 type HsSampler struct {
 	pid        int
-	re         *regexp.Regexp
 	logs       []map[string]int
 	limit_logs int
 }
@@ -37,9 +35,7 @@ func (self *HsSampler) sample() {
 
 	row := make(map[string]int)
 	for _, method := range self.scan_methods(stack) {
-		if method != "java.lang.Object.wait" && method != "java.lang.Thread.run" {
-			row[method] += 1
-		}
+		row[method] += 1
 	}
 	self.add_log(row)
 }
@@ -100,20 +96,23 @@ func (self *HsSampler) add_log(row map[string]int) {
 
 func (self *HsSampler) scan_methods(stack string) []string {
 	methods := make([]string, 0)
-	self.re.ReplaceAllStringFunc(stack, func(s string) string {
-		method := s[3 : len(s)-1]
-		methods = append(methods, method)
-		return s
-	})
+	threads, err := attach.ParseStack(stack)
+	if err == nil {
+		for _, thread := range threads {
+			stack := thread.GetStack()
+			if len(stack) > 0 {
+				method := stack[0].GetMethod()
+				if method != "java.lang.Object.wait" && method != "java.lang.Thread.run" {
+					methods = append(methods, stack[0].GetMethod())
+				}
+			}
+		}
+	}
 	return methods
 }
 
 func NewSampler(pid int, log_limit int) (*HsSampler, error) {
-	re, err := regexp.Compile("at ([^(]+)\\(")
-	if err != nil {
-		return nil, err
-	}
-	return &HsSampler{pid, re, make([]map[string]int, 0), log_limit}, nil
+	return &HsSampler{pid, make([]map[string]int, 0), log_limit}, nil
 }
 
 /**

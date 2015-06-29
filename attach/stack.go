@@ -18,6 +18,25 @@ type StackItem struct {
 	line   int
 }
 
+func (self *JavaThread) GetName() string {
+	return self.name
+}
+func (self *JavaThread) GetState() string {
+	return self.state
+}
+func (self *JavaThread) GetStack() []*StackItem {
+	return self.stacks
+}
+func (self *StackItem) GetMethod() string {
+	return self.method
+}
+func (self *StackItem) GetFile() string {
+	return self.file
+}
+func (self *StackItem) GetLine() int {
+	return self.line
+}
+
 var header_re = regexp.MustCompile(`^"([^"]+)"`)
 var thread_state_re = regexp.MustCompile(`java.lang.Thread.State: ([A-Z_]+)(?: \((.*)\))?`)
 var stack_at_re = regexp.MustCompile(`\s*at ([^(]+)\((.*?)(?::(\d+))?\)`)
