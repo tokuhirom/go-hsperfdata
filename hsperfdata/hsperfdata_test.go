@@ -2,6 +2,7 @@ package hsperfdata
 
 import (
 	"testing"
+	"time"
 )
 
 func TestNew(t *testing.T) {
@@ -27,7 +28,16 @@ func TestNew(t *testing.T) {
 	path := result.GetString("sun.property.sun.boot.library.path")
 	expected := "/Library/Java/JavaVirtualMachines/jdk1.8.0_31.jdk/Contents/Home/jre/lib"
 	if path != expected {
-		t.Errorf("sun.property.sun.boot.library.path miss match: '%#v'(len:%d) != '%#v'(len:%d)", path, len(path), expected, len(expected))
+		t.Errorf("sun.property.sun.boot.library.path mismatch: '%#v'(len:%d) != '%#v'(len:%d)", path, len(path), expected, len(expected))
+	}
+
+	expectedTime := time.Date(2015, time.June, 12, 4, 54, 14, 428000000, time.UTC)
+	actualTime, err := result.GetTimestamp()
+	if err != nil {
+		t.Error(err)
+	}
+	if actualTime.In(time.UTC) != expectedTime {
+		t.Errorf("ModTimestamp mismatch: '%v' != '%v'", actualTime.In(time.UTC), expectedTime)
 	}
 
 	{

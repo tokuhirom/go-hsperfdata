@@ -72,7 +72,10 @@ func (datafile *File) Read() (*Result, error) {
 		}
 	}
 
-	result := &Result{make(map[string]interface{})}
+	result := &Result{
+		data:         make(map[string]interface{}),
+		modTimestamp: prologue.ModTimestamp,
+	}
 
 	start_offset := prologue.EntryOffset
 
@@ -105,7 +108,7 @@ func (datafile *File) Read() (*Result, error) {
 				return nil, fmt.Errorf("Cannot read binary: %v", err)
 			}
 
-			result.data[name] = fmt.Sprintf("%v", i)
+			result.data[name] = i
 		} else {
 			if entry.DataType != TYPE_BYTE || entry.DataUnits != UNITS_STRING || (entry.DataVar != VARIABILITY_CONSTANT && entry.DataVar != VARIABILITY_VARIABLE) {
 				return nil, fmt.Errorf("Unexpected vector monitor: DataType:%c,DataUnits:%v,DataVar:%v", entry.DataType, entry.DataUnits, entry.DataVar)
