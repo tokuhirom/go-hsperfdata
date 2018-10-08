@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	pid := os.Args[1]
+	pid := flag.Args()[0]
 
 	repo, err := newRepository(*user)
 	if err != nil {
